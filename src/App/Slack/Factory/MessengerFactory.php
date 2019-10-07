@@ -1,16 +1,16 @@
 <?php declare(strict_types=1);
 
-namespace App\WitAI\Factory;
+namespace App\Slack\Factory;
 
-use App\WitAI\Adapter;
+use App\Slack\Messenger;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Client\ClientInterface;
 
-class AdapterFactory
+class MessengerFactory
 {
-    public function __invoke(ContainerInterface $container): Adapter
+    public function __invoke(ContainerInterface $container): Messenger
     {
-        return new Adapter(
+        return new Messenger(
             $container->get(ClientInterface::class)
         );
     }

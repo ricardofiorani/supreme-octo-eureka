@@ -28,6 +28,6 @@ class Adapter
         $response = $this->httpClient->sendRequest($request);
         $responseBody = json_decode((string)$response->getBody(), true);
 
-        return DeployParameters::createFromArray($responseBody);
+        return DeployParameters::create($responseBody, $message);
     }
 }

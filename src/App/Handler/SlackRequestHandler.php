@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Handler;
 
 use App\Messages\SlackMentionMessage;
+use App\Slack\Messenger as Slack;
 use App\WitAI\Adapter as AI;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -16,10 +17,12 @@ use function time;
 class SlackRequestHandler implements RequestHandlerInterface
 {
     private AI $ai;
+    private Slack $slack;
 
-    public function __construct(AI $ai)
+    public function __construct(AI $ai, Slack $slack)
     {
         $this->ai = $ai;
+        $this->slack = $slack;
     }
 
     public function handle(ServerRequestInterface $request): ResponseInterface
@@ -33,6 +36,7 @@ class SlackRequestHandler implements RequestHandlerInterface
             case 'app_mention':
                 $slackMessage = SlackMentionMessage::createFromArray($requestBody);
                 $deployParameters = $this->ai->recognizeFromSlackMessage($slackMessage);
+                $this->slack->sendConfirmationMessage($deployParameters);
 
                 return new JsonResponse([
                     'branch' => $deployParameters->getBranch(),

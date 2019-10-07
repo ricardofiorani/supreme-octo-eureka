@@ -6,8 +6,12 @@ namespace App;
 
 use App\Handler\Factory\SlackRequestHandlerFactory;
 use App\Handler\SlackRequestHandler;
+use App\Http\Client\Factory\HttpClientFactory;
+use App\Slack\Factory\MessengerFactory;
+use App\Slack\Messenger;
 use App\WitAI\Adapter;
 use App\WitAI\Factory\AdapterFactory;
+use Psr\Http\Client\ClientInterface;
 
 /**
  * The configuration provider for the App module
@@ -39,6 +43,8 @@ class ConfigProvider
             'factories' => [
                 SlackRequestHandler::class => SlackRequestHandlerFactory::class,
                 Adapter::class => AdapterFactory::class,
+                ClientInterface::class => HttpClientFactory::class,
+                Messenger::class => MessengerFactory::class,
             ],
         ];
     }
