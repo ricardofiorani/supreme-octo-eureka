@@ -13,6 +13,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerInterface;
 use Zend\Diactoros\Response\JsonResponse;
 
+use function GuzzleHttp\Psr7\str;
 use function time;
 
 class SlackRequestHandler implements RequestHandlerInterface
@@ -31,18 +32,24 @@ class SlackRequestHandler implements RequestHandlerInterface
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         try {
+            $this->logger->debug('Request incoming: ' . str($request));
             $requestBody = json_decode((string)$request->getBody(), true);
             $type = $requestBody['type'] ?? 'not_set';
 
             switch ($type) {
                 case 'url_verification':
-                    $this->logger->info('URL Verification requested');
+                    $this->logger->info('URL Verification request detected, sending challenge');
                     return new JsonResponse(['challenge' => $requestBody['challenge']]);
                 case 'app_mention':
-                    $this->logger->info('Event app_mention triggered');
+                    $this->logger->info('Event app_mention request detected, processing it');
                     $slackMessage = SlackMentionMessage::createFromArray($requestBody);
                     $deployParameters = $this->ai->recognizeFromSlackMessage($slackMessage);
                     $this->slack->sendConfirmationMessage($deployParameters);
+                    $this->logger->info('Finished processing app_mention', [
+                        'branch' => $deployParameters->getBranch(),
+                        'market' => $deployParameters->getMarket(),
+                        'environment' => $deployParameters->getEnvironment(),
+                    ]);
 
                     return new JsonResponse([
                         'branch' => $deployParameters->getBranch(),
