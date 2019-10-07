@@ -34,7 +34,7 @@ class SlackRequestHandler implements RequestHandlerInterface
         try {
             $this->logger->debug('Request incoming: ' . str($request));
             $requestBody = json_decode((string)$request->getBody(), true);
-            $type = $requestBody['type'] ?? 'not_set';
+            $type = $requestBody['event']['type'] ?? $requestBody['type'] ?? 'not_set';
 
             switch ($type) {
                 case 'url_verification':
