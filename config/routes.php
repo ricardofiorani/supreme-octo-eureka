@@ -33,5 +33,5 @@ use Zend\Expressive\MiddlewareFactory;
  * );
  */
 return function (Application $app, MiddlewareFactory $factory, ContainerInterface $container) : void {
-    $app->post('/slack-handler', App\Handler\SlackRequestHandler::class, 'slack-handler');
+    $app->post('/slack-handler', \App\Http\Request\Handler\SlackRequestHandler::class, 'slack-handler');
 };

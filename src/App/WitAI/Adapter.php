@@ -3,7 +3,8 @@
 namespace App\WitAI;
 
 use App\Jenkins\DeployParameters;
-use App\Messages\SlackMentionMessage;
+use App\Slack\Messages\SlackMentionMessage;
+use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Zend\Diactoros\Request;
 use Zend\Diactoros\Uri;
@@ -25,7 +26,12 @@ class Adapter
             ->withAddedHeader('Authorization', $authorization)
             ->withUri($uri);
 
-        $response = $this->httpClient->sendRequest($request);
+        try {
+            $response = $this->httpClient->sendRequest($request);
+        } catch (ClientExceptionInterface $exception) {
+            throw new \LogicException('Shit happened when asking the AI', 0, $exception);
+        }
+
         $responseBody = json_decode((string)$response->getBody(), true);
 
         return DeployParameters::create($responseBody, $message);

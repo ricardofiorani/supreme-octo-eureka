@@ -39,6 +39,7 @@
   "require": {
     "php": "^7.4",
     "ext-json": "*",
+    "monolog/monolog": "^2.0",
     "ricardofiorani/guzzle-psr18-adapter": "^1.0",
     "vlucas/phpdotenv": "^3.6",
     "zendframework/zend-component-installer": "^2.1.1",

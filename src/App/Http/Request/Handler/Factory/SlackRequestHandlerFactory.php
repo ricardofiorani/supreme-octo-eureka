@@ -1,11 +1,12 @@
 <?php declare(strict_types=1);
 
-namespace App\Handler\Factory;
+namespace App\Http\Request\Handler\Factory;
 
-use App\Handler\SlackRequestHandler;
+use App\Http\Request\Handler\SlackRequestHandler;
 use App\Slack\Messenger;
 use App\WitAI\Adapter as AI;
 use Psr\Container\ContainerInterface;
+use Psr\Log\LoggerInterface;
 
 class SlackRequestHandlerFactory
 {
@@ -13,7 +14,8 @@ class SlackRequestHandlerFactory
     {
         return new SlackRequestHandler(
             $container->get(AI::class),
-            $container->get(Messenger::class)
+            $container->get(Messenger::class),
+            $container->get(LoggerInterface::class)
         );
     }
 }

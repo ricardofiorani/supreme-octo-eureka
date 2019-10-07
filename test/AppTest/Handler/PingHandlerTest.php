@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace AppTest\Handler;
 
-use App\Handler\SlackRequestHandler;
+use App\Http\Request\Handler\SlackRequestHandler;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\JsonResponse;

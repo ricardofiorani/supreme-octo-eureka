@@ -2,7 +2,7 @@
 
 namespace App\Jenkins;
 
-use App\Messages\SlackMentionMessage;
+use App\Slack\Messages\SlackMentionMessage;
 
 class DeployParameters
 {

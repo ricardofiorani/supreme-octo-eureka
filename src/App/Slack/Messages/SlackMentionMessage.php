@@ -1,6 +1,6 @@
 <?php declare(strict_types=1);
 
-namespace App\Messages;
+namespace App\Slack\Messages;
 
 class SlackMentionMessage
 {

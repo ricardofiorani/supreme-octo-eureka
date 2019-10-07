@@ -1,17 +1,17 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace App;
 
-use App\Handler\Factory\SlackRequestHandlerFactory;
-use App\Handler\SlackRequestHandler;
+use App\Http\Request\Handler\Factory\SlackRequestHandlerFactory;
+use App\Http\Request\Handler\SlackRequestHandler;
 use App\Http\Client\Factory\HttpClientFactory;
+use App\Logger\Factory\LoggerFactory;
 use App\Slack\Factory\MessengerFactory;
 use App\Slack\Messenger;
 use App\WitAI\Adapter;
 use App\WitAI\Factory\AdapterFactory;
 use Psr\Http\Client\ClientInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * The configuration provider for the App module
@@ -45,6 +45,7 @@ class ConfigProvider
                 Adapter::class => AdapterFactory::class,
                 ClientInterface::class => HttpClientFactory::class,
                 Messenger::class => MessengerFactory::class,
+                LoggerInterface::class => LoggerFactory::class,
             ],
         ];
     }
