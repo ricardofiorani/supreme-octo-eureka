@@ -62,6 +62,10 @@ class SlackRequestHandler implements RequestHandlerInterface
                         'environment' => $deployParameters->getEnvironment(),
                     ]);
 
+                    //In here I would send to Jenkins the build/deploy job request,
+                    // but since this is just a proof of concept to test how it works on wit.ai and slack,
+                    //I will not do it so soon
+
                     return new JsonResponse([
                         'branch' => $deployParameters->getBranch(),
                         'environment' => $deployParameters->getEnvironment(),
