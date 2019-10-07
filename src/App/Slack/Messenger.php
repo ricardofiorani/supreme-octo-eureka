@@ -5,6 +5,7 @@ namespace App\Slack;
 use App\Jenkins\DeployParameters;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
+use Psr\Log\LoggerInterface;
 use Zend\Diactoros\Request;
 use Zend\Diactoros\Uri;
 use function GuzzleHttp\Psr7\str;
@@ -12,10 +13,12 @@ use function GuzzleHttp\Psr7\str;
 class Messenger
 {
     private ClientInterface $httpClient;
+    private LoggerInterface $logger;
 
-    public function __construct(ClientInterface $httpClient)
+    public function __construct(ClientInterface $httpClient, LoggerInterface $logger)
     {
         $this->httpClient = $httpClient;
+        $this->logger = $logger;
     }
 
     public function sendConfirmationMessage(DeployParameters $deployParameters): void
@@ -35,7 +38,11 @@ class Messenger
         ]));
 
         try {
-            $this->httpClient->sendRequest($request);
+            $response = $this->httpClient->sendRequest($request);
+            $this->logger->info('Request sent to Slack API', [
+                'request' => str($request),
+                'response' => str($response),
+            ]);
         } catch (ClientExceptionInterface $exception) {
             throw new \LogicException(
                 sprintf('Failed to send Slack message. Reason: %s', $exception->getMessage()),
