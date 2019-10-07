@@ -42,9 +42,20 @@ class SlackRequestHandler implements RequestHandlerInterface
                     return new JsonResponse(['challenge' => $requestBody['challenge']]);
                 case 'app_mention':
                     $this->logger->info('Event app_mention request detected, processing it');
+
                     $slackMessage = SlackMentionMessage::createFromArray($requestBody);
+                    $this->logger->info('Message detected', ['message' => $slackMessage->getText()]);
+
                     $deployParameters = $this->ai->recognizeFromSlackMessage($slackMessage);
+                    $this->logger->info('Parameters detected', [
+                        'branch' => $deployParameters->getBranch(),
+                        'environment' => $deployParameters->getEnvironment(),
+                        'market' => $deployParameters->getMarket(),
+                    ]);
+
                     $this->slack->sendConfirmationMessage($deployParameters);
+                    $this->logger->info('Finished sending the notification to slack');
+
                     $this->logger->info('Finished processing app_mention', [
                         'branch' => $deployParameters->getBranch(),
                         'market' => $deployParameters->getMarket(),
