@@ -43,7 +43,7 @@ class SlackRequestHandler implements RequestHandlerInterface
                 case 'app_mention':
                     $this->logger->info('Event app_mention request detected, processing it');
 
-                    $slackMessage = SlackMentionMessage::createFromArray($requestBody);
+                    $slackMessage = SlackMentionMessage::createFromArray($requestBody['event']);
                     $this->logger->info('Message detected', ['message' => $slackMessage->getText()]);
 
                     $deployParameters = $this->ai->recognizeFromSlackMessage($slackMessage);

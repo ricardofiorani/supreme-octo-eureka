@@ -48,7 +48,7 @@ class Messenger
     private function buildTextFromParameters(DeployParameters $deployParameters): string
     {
         return sprintf(
-            'Hello @%s, I will deploy `%s` to the environment `%s` simulating the market `%s` :rocket:',
+            'Hello <@%s>, I will deploy `%s` to the environment `%s` simulating the market `%s` now for you :rocket:',
             $deployParameters->getMessage()->getUser(),
             $deployParameters->getBranch(),
             $deployParameters->getEnvironment(),
