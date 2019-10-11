@@ -2,8 +2,7 @@
 
 namespace App\WitAI;
 
-use App\Jenkins\DeployParameters;
-use App\Slack\Messages\SlackMentionMessage;
+use App\WitAI\Domain\Response;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Zend\Diactoros\Request;
@@ -18,9 +17,9 @@ class Adapter
         $this->httpClient = $httpClient;
     }
 
-    public function recognizeFromSlackMessage(SlackMentionMessage $message): DeployParameters
+    public function recognizeEntities(string $message): Response
     {
-        $uri = new Uri(sprintf('https://api.wit.ai/message?v=20191006&q=%s', urlencode($message->getText())));
+        $uri = new Uri(sprintf('https://api.wit.ai/message?v=20191006&q=%s', urlencode($message)));
         $authorization = sprintf('Bearer %s', getenv('WITAI_SERVER_TOKEN'));
         $request = (new Request())
             ->withAddedHeader('Authorization', $authorization)
@@ -28,12 +27,10 @@ class Adapter
 
         try {
             $response = $this->httpClient->sendRequest($request);
+
+            return Response::createFromPsrResponse($response);
         } catch (ClientExceptionInterface $exception) {
-            throw new \LogicException('Shit happened when asking the AI', 0, $exception);
+            throw new AdapterException('There was some problem with Request or Response from Wit.AI', 0, $exception);
         }
-
-        $responseBody = json_decode((string)$response->getBody(), true);
-
-        return DeployParameters::create($responseBody, $message);
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Slack;
 
-use App\Jenkins\DeployParameters;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Log\LoggerInterface;
@@ -21,7 +20,7 @@ class Messenger
         $this->logger = $logger;
     }
 
-    public function sendConfirmationMessage(DeployParameters $deployParameters): void
+    public function sendMessage(string $message): void
     {
         $uri = new Uri('https://slack.com/api/chat.postMessage');
         $authorization = sprintf('Bearer %s', getenv('SLACK_TOKEN'));
@@ -34,7 +33,7 @@ class Messenger
         $request->getBody()->write(json_encode([
             'token' => getenv('SLACK_TOKEN'),
             'channel' => getenv('SLACK_CHANNEL'),
-            'text' => $this->buildTextFromParameters($deployParameters),
+            'text' => $message,
         ]));
 
         try {
@@ -50,16 +49,5 @@ class Messenger
                 $exception
             );
         }
-    }
-
-    private function buildTextFromParameters(DeployParameters $deployParameters): string
-    {
-        return sprintf(
-            'Hello <@%s>, I will deploy `%s` to the environment `%s` simulating the market `%s` now for you :rocket:',
-            $deployParameters->getMessage()->getUser(),
-            $deployParameters->getBranch(),
-            $deployParameters->getEnvironment(),
-            $deployParameters->getMarket()
-        );
     }
 }

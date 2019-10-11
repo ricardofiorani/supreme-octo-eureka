@@ -3,6 +3,7 @@
 namespace App\Http\Request\Handler\Factory;
 
 use App\Http\Request\Handler\SlackRequestHandler;
+use App\Service\ActionService;
 use App\Slack\Messenger;
 use App\WitAI\Adapter as AI;
 use Psr\Container\ContainerInterface;
@@ -15,6 +16,7 @@ class SlackRequestHandlerFactory
         return new SlackRequestHandler(
             $container->get(AI::class),
             $container->get(Messenger::class),
+            $container->get(ActionService::class),
             $container->get(LoggerInterface::class)
         );
     }

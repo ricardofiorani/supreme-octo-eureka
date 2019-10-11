@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Request\Handler;
 
+use App\Service\ActionService;
 use App\Slack\Messages\SlackMentionMessage;
 use App\Slack\Messenger as Slack;
 use App\WitAI\Adapter as AI;
@@ -20,12 +21,18 @@ class SlackRequestHandler implements RequestHandlerInterface
 {
     private AI $ai;
     private Slack $slack;
+    private ActionService $actionRunner;
     private LoggerInterface $logger;
 
-    public function __construct(AI $ai, Slack $slack, LoggerInterface $logger)
-    {
+    public function __construct(
+        AI $ai,
+        Slack $slack,
+        ActionService $actionRunner,
+        LoggerInterface $logger
+    ) {
         $this->ai = $ai;
         $this->slack = $slack;
+        $this->actionRunner = $actionRunner;
         $this->logger = $logger;
     }
 
@@ -46,30 +53,24 @@ class SlackRequestHandler implements RequestHandlerInterface
                     $slackMessage = SlackMentionMessage::createFromArray($requestBody['event']);
                     $this->logger->info('Message detected', ['message' => $slackMessage->getText()]);
 
-                    $deployParameters = $this->ai->recognizeFromSlackMessage($slackMessage);
-                    $this->logger->info('Parameters detected', [
-                        'branch' => $deployParameters->getBranch(),
-                        'environment' => $deployParameters->getEnvironment(),
-                        'market' => $deployParameters->getMarket(),
-                    ]);
+                    $entities = $this->ai->recognizeEntities($slackMessage->getText());
+                    $actionResponse = $this->actionRunner->processEntities($entities);
 
-                    $this->slack->sendConfirmationMessage($deployParameters);
+                    $this->slack->sendMessage($actionResponse->getResponseMessage());
                     $this->logger->info('Finished sending the notification to slack');
 
-                    $this->logger->info('Finished processing app_mention', [
-                        'branch' => $deployParameters->getBranch(),
-                        'market' => $deployParameters->getMarket(),
-                        'environment' => $deployParameters->getEnvironment(),
-                    ]);
 
                     //In here I would send to Jenkins the build/deploy job request,
                     // but since this is just a proof of concept to test how it works on wit.ai and slack,
                     //I will not do it so soon
 
+                    $this->logger->info('Finished processing app_mention');
+
                     return new JsonResponse([
-                        'branch' => $deployParameters->getBranch(),
-                        'environment' => $deployParameters->getEnvironment(),
-                        'market' => $deployParameters->getMarket(),
+                        'success' => $actionResponse->isSuccessful(),
+                        'message' => $actionResponse->getResponseMessage(),
+                        'parameters_used' => $actionResponse->getParametersUsed(),
+                        'entities' => $entities->toArray(),
                     ]);
                 default:
                     $this->logger->info('Non present or invalid type on request');

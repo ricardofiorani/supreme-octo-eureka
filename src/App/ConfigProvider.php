@@ -6,6 +6,7 @@ use App\Http\Request\Handler\Factory\SlackRequestHandlerFactory;
 use App\Http\Request\Handler\SlackRequestHandler;
 use App\Http\Client\Factory\HttpClientFactory;
 use App\Logger\Factory\LoggerFactory;
+use App\Service\ActionService;
 use App\Slack\Factory\MessengerFactory;
 use App\Slack\Messenger;
 use App\WitAI\Adapter;
@@ -40,6 +41,9 @@ class ConfigProvider
     public function getDependencies() : array
     {
         return [
+            'invokables' => [
+                ActionService::class => ActionService::class,
+            ],
             'factories' => [
                 SlackRequestHandler::class => SlackRequestHandlerFactory::class,
                 Adapter::class => AdapterFactory::class,
