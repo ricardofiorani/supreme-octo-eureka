@@ -9,6 +9,7 @@ use App\Logger\Factory\LoggerFactory;
 use App\Service\ActionService;
 use App\Slack\Factory\MessengerFactory;
 use App\Slack\Messenger;
+use App\Slack\Permission\PermissionChecker;
 use App\WitAI\Adapter;
 use App\WitAI\Factory\AdapterFactory;
 use Psr\Http\Client\ClientInterface;
@@ -43,6 +44,7 @@ class ConfigProvider
         return [
             'invokables' => [
                 ActionService::class => ActionService::class,
+                PermissionChecker::class => PermissionChecker::class,
             ],
             'factories' => [
                 SlackRequestHandler::class => SlackRequestHandlerFactory::class,

@@ -20,7 +20,7 @@ class Messenger
         $this->logger = $logger;
     }
 
-    public function sendMessage(string $message): void
+    public function sendMessage(string $message, string $channel, string $user): void
     {
         $uri = new Uri('https://slack.com/api/chat.postMessage');
         $authorization = sprintf('Bearer %s', getenv('SLACK_TOKEN'));
@@ -32,8 +32,8 @@ class Messenger
             ->withMethod('POST');
         $request->getBody()->write(json_encode([
             'token' => getenv('SLACK_TOKEN'),
-            'channel' => getenv('SLACK_CHANNEL'),
-            'text' => $message,
+            'channel' => $channel,
+            'text' => "<@{$user}> {$message}",
         ]));
 
         try {
