@@ -6,7 +6,6 @@ use App\Service\ActionService;
 use App\Slack\Messages\SlackMentionMessage;
 use App\Slack\Messenger as Slack;
 use App\Slack\Permission\Exception\PermissionException;
-use App\Slack\Permission\Exception\UserNotAllowedException;
 use App\Slack\Permission\PermissionChecker;
 use App\WitAI\Adapter as AI;
 use Psr\Http\Message\ResponseInterface;
@@ -127,9 +126,7 @@ class SlackRequestHandler implements RequestHandlerInterface
             $message = <<<STRING
 I tried my best but I failed :broken_heart: :
 > `{$exception->getMessage()}` on `{$exception->getFile()}({$exception->getLine()})`.
-
 STRING;
-
             $this->slack->sendMessage(
                 $message,
                 $slackMessage->getChannel(),
