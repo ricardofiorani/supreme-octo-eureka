@@ -2,7 +2,6 @@
 
 namespace App\Domain\Intent;
 
-use App\Domain\Intent\Factory\IntentFactory;
 use App\Domain\Intent\Traits\BranchOnIntentTrait;
 use App\Domain\Intent\Traits\DeployParametersTrait;
 use App\Domain\Parameter\ParameterTypes;

@@ -5,6 +5,7 @@ namespace App\Http\Request\Handler\Factory;
 use App\Http\Request\Handler\SlackRequestHandler;
 use App\Service\ActionService;
 use App\Slack\Messenger;
+use App\Slack\Permission\PermissionChecker;
 use App\WitAI\Adapter as AI;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
@@ -17,6 +18,7 @@ class SlackRequestHandlerFactory
             $container->get(AI::class),
             $container->get(Messenger::class),
             $container->get(ActionService::class),
+            $container->get(PermissionChecker::class),
             $container->get(LoggerInterface::class)
         );
     }
