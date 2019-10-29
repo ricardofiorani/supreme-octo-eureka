@@ -30,7 +30,11 @@ class Adapter
 
             return Response::createFromPsrResponse($response);
         } catch (ClientExceptionInterface $exception) {
-            throw new AdapterException('There was some problem with Request or Response from Wit.AI', 0, $exception);
+            throw new AdapterException(
+                "There was some problem with Request or Response from Wit.AI: {$exception->getMessage()}",
+                0,
+                $exception
+            );
         }
     }
 }
