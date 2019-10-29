@@ -17,9 +17,9 @@ class BuildMessage
     {
         $intentName = $this->intent->getType();
         $intentConfidence = $this->intent->getEntity()->getConfidencePercentage();
+
         $branchName = $this->intent->getBranch();
         $branchConfidence = $this->intent->getBranch()->getConfidencePercentage();
-
 
         return <<<STRING
 I got it :thumbsup:, I will `{$intentName}` ({$intentConfidence} confidence) the branch `{$branchName}` ({$branchConfidence} confidence) ! :shipitparrot: 

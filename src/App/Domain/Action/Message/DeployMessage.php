@@ -15,13 +15,20 @@ class DeployMessage
 
     public function __toString(): string
     {
+        $buildNumber = $this->intent->getBuildNumber();
+        $buildNumberConfidence = $this->intent->getBuildNumber()->getConfidencePercentage();
+
         $intentName = $this->intent->getType();
-        $build = $this->intent->getBuildNumber();
-        $environment = $this->intent->getEnvironment();
-        $market = $this->intent->getMarket();
+        $intentConfidence = $this->intent->getEntity()->getConfidencePercentage();
+
+        $environmentName = $this->intent->getEnvironment();
+        $environmentConfidence = $this->intent->getEntity()->getConfidencePercentage();
+
+        $marketName = $this->intent->getMarket();
+        $marketConfidence = $this->intent->getMarket()->getConfidencePercentage();
 
         return <<<STRING
-I got it ! I will `{$intentName}` build `#{$build}` to `{$environment}` with the `{$market}` market :thumbsup:
+I got it :thumbsup:, I will `{$intentName}` ({$intentConfidence} confidence) build `#{$buildNumber}` ({$buildNumberConfidence} confidence) to `{$environmentName}` ({$environmentConfidence} confidence) with the `{$marketName}` ({$marketConfidence} confidence) market ! :shipitparrot:
 STRING;
     }
 }
