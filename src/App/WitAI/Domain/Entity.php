@@ -37,6 +37,11 @@ class Entity
         return $this->confidence;
     }
 
+    public function getConfidencePercentage(): string
+    {
+        return round($this->getConfidence() * 100) . '%';
+    }
+
     public function getValue(): string
     {
         return $this->value;

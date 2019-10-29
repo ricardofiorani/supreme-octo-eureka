@@ -9,7 +9,7 @@ class MultipleIntentsException extends AbstractActionException
     public function getFriendlyMessage(): string
     {
         $intentList = $this->getEntitiesCollection()->getIntentEntities();
-        $intents = implode('`, `', reset($intentList));
+        $intents = implode('`, `', $intentList);
 
         return <<<STRING
 Sorry, I detected these intents `{$intents}` but I'm not multitask (yet :wink:). 

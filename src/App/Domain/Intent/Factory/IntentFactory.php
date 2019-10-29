@@ -7,20 +7,30 @@ use App\Domain\Intent\BuildIntent;
 use App\Domain\Intent\DeployIntent;
 use App\Domain\Intent\IntentInterface;
 use App\Domain\Intent\Types;
+use App\WitAI\Domain\Entity;
 
 class IntentFactory
 {
-    public static function createFromString(string $intent): IntentInterface
+    public static function createFromEntity(Entity $entity): IntentInterface
     {
-        switch ($intent) {
+        $intentValue = $entity->getValue();
+
+        switch ($intentValue) {
             case Types::BUILD:
-                return new BuildIntent();
+                $intent = new BuildIntent();
+                break;
             case Types::DEPLOY:
-                return new DeployIntent();
+                $intent = new DeployIntent();
+                break;
             case Types::BUILD_AND_DEPLOY:
-                return new BuildAndDeployIntent();
+                $intent = new BuildAndDeployIntent();
+                break;
             default:
-                throw new InvalidIntentException("`$intent` is not a valid intent");
+                throw new InvalidIntentException("`$intentValue` is not a valid intent");
         }
+
+        $intent->setEntity($entity);
+
+        return $intent;
     }
 }

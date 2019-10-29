@@ -2,6 +2,7 @@
 
 namespace App\Http\Request\Handler;
 
+use App\Domain\Action\ActionParameters;
 use App\Service\ActionService;
 use App\Slack\Messages\SlackMentionMessage;
 use App\Slack\Messenger as Slack;
@@ -41,7 +42,7 @@ class SlackRequestHandler implements RequestHandlerInterface
 
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        $this->logger->debug('Request incoming: ' . str($request));
+        $this->logger->debug('Request incoming', ['request' => str($request)]);
         $requestBody = json_decode((string)$request->getBody(), true);
         $type = $requestBody['event']['type'] ?? $requestBody['type'] ?? 'not_set';
 
@@ -59,37 +60,33 @@ class SlackRequestHandler implements RequestHandlerInterface
 
     private function verifyUrl($requestBody): ResponseInterface
     {
-        $this->logger->info('URL Verification request detected, sending challenge');
+        $this->logger->debug('URL Verification request detected, sending challenge');
 
         return new JsonResponse(['challenge' => $requestBody['challenge']]);
     }
 
     private function processAppMention($requestBody): ResponseInterface
     {
-        $this->logger->info('Event app_mention request detected, processing it');
+        $this->logger->debug('Event app_mention request detected, processing it');
         $slackMessage = SlackMentionMessage::createFromArray($requestBody['event']);
-        $this->logger->info('Message detected', ['message' => $slackMessage->getText()]);
+        $this->logger->debug('Message detected', ['message' => $slackMessage->getText()]);
 
         try {
             $this->permissionChecker->checkUser($slackMessage->getUser());
             $this->permissionChecker->checkChannel($slackMessage->getChannel());
-
             $entities = $this->ai->recognizeEntities($slackMessage->getText());
-            $actionResponse = $this->actionRunner->processEntities($entities);
+            $this->logger->debug('Entities recognized', $entities->getEntities()->toArray());
+            $actionParameters = new ActionParameters($entities, $slackMessage);
+            $actionResponse = $this->actionRunner->process($actionParameters);
 
             $this->slack->sendMessage(
                 $actionResponse->getResponseMessage(),
                 $slackMessage->getChannel(),
                 $slackMessage->getUser()
             );
-            $this->logger->info('Finished sending the notification to slack');
 
-
-            //In here I would send to Jenkins the build/deploy job request,
-            // but since this is just a proof of concept to test how it works on wit.ai and slack,
-            //I will not do it so soon
-
-            $this->logger->info('Finished processing app_mention');
+            $this->logger->debug('Message sent to slack', ['message' => $actionResponse->getResponseMessage()]);
+            $this->logger->debug('Finished processing app_mention request');
 
             return new JsonResponse([
                 'success' => $actionResponse->isSuccessful(),
@@ -124,7 +121,7 @@ class SlackRequestHandler implements RequestHandlerInterface
 
             $this->logger->error($exception->getMessage(), $exceptionArray);
             $message = <<<STRING
-I tried my best but I failed :broken_heart: :
+I tried my best but I failed in my source code :broken_heart: :
 > `{$exception->getMessage()}` on `{$exception->getFile()}({$exception->getLine()})`.
 STRING;
             $this->slack->sendMessage(
@@ -132,7 +129,7 @@ STRING;
                 $slackMessage->getChannel(),
                 $slackMessage->getUser()
             );
-            $this->logger->info('Finished sending error notification to slack');
+            $this->logger->debug('Finished sending error notification to slack');
 
             return new JsonResponse($exceptionArray);
         }

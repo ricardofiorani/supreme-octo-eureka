@@ -4,10 +4,12 @@ namespace App\Domain\Intent;
 
 use App\Domain\Intent\Traits\BranchOnIntentTrait;
 use App\Domain\Intent\Traits\DeployParametersTrait;
+use App\Domain\Intent\Traits\IntentEntityTrait;
 use App\Domain\Parameter\ParameterTypes;
 
 class BuildAndDeployIntent implements IntentInterface
 {
+    use IntentEntityTrait;
     use BranchOnIntentTrait;
     use DeployParametersTrait;
 

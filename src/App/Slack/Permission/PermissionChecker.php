@@ -11,11 +11,13 @@ class PermissionChecker
 {
     private array $usersAllowed;
     private array $channelsAllowed;
+    private array $usersAllowedToDeployToProduction;
 
     public function __construct()
     {
         $this->usersAllowed = json_decode(getenv('USERS_ALLOWED'), true);
         $this->channelsAllowed = json_decode(getenv('CHANNELS_ALLOWED'), true);
+        $this->usersAllowedToDeployToProduction = json_decode(getenv('USERS_ALLOWED_TO_DEPLOY_TO_PRODUCTION'), true);
     }
 
     /**
@@ -44,6 +46,21 @@ STRING;
  >Maybe you can ask someone to add this channel id `{$channel}` on the allowed channels list ?
 STRING;
             throw new ChannelNotAllowedException($message);
+        }
+    }
+
+    /**
+     * @throws UserNotAllowedException
+     */
+    public function checkPermissionToDeployToProduction(string $user): void
+    {
+        if (false === in_array($user, $this->usersAllowedToDeployToProduction, false)) {
+            $message = <<<STRING
+ Sorry :hear_no_evil:, I do know you, but I'm programmed to do not allow you to deploy to production.
+>Maybe you can ask someone to add your id `{$user}` on the list of users allowed to deploy to production ?
+STRING;
+
+            throw new UserNotAllowedException($message);
         }
     }
 }

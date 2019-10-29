@@ -16,12 +16,17 @@ class BuildAndDeployMessage
     public function __toString(): string
     {
         $intentName = $this->intent->getType();
-        $branch = $this->intent->getBranch();
-        $environment = $this->intent->getEnvironment();
-        $market = $this->intent->getMarket();
+        $intentConfidence = $this->intent->getEntity()->getConfidencePercentage();
+        $branchName = $this->intent->getBranch();
+        $branchConfidence = $this->intent->getBranch()->getConfidencePercentage();
+        $environmentName = $this->intent->getEnvironment();
+        $environmentConfidence = $this->intent->getEntity()->getConfidencePercentage();
+        $marketName = $this->intent->getMarket();
+        $marketConfidence = $this->intent->getMarket()->getConfidencePercentage();
 
         return <<<STRING
-I got it ! I will `{$intentName}` the branch `{$branch}` to `{$environment}` with the `{$market}` market :thumbsup:
+I got it :thumbs_up:, I will `{$intentName}` the branch `{$branchName}` to `{$environmentName}` with the `{$marketName}` market ! :shipitparrot:
+I got it :thumbsup:, I will `{$intentName}` ({$intentConfidence} confidence) the branch `{$branchName}` ({$branchConfidence} confidence) to `{$environmentName}` ({$environmentConfidence} confidence) with the `{$marketName}` ({$marketConfidence} confidence) market ! :shipitparrot:
 STRING;
     }
 }

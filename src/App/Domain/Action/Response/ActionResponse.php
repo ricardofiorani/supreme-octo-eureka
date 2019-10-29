@@ -18,17 +18,6 @@ class ActionResponse
     public function getResponseMessage(): string
     {
         return $this->message;
-
-        /*
-         *
-         sprintf(
-            'Hello <@%s>, I will deploy `%s` to the environment `%s` simulating the market `%s` now for you :rocket:',
-            $deployParameters->getMessage()->getUser(),
-            $deployParameters->getBranch(),
-            $deployParameters->getEnvironment(),
-            $deployParameters->getMarket()
-        )
-         */
     }
 
     public function isSuccessful(): bool

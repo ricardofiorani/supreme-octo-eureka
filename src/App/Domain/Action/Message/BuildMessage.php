@@ -16,10 +16,13 @@ class BuildMessage
     public function __toString(): string
     {
         $intentName = $this->intent->getType();
-        $branch = $this->intent->getBranch();
+        $intentConfidence = $this->intent->getEntity()->getConfidencePercentage();
+        $branchName = $this->intent->getBranch();
+        $branchConfidence = $this->intent->getBranch()->getConfidencePercentage();
+
 
         return <<<STRING
-I got it ! I will `{$intentName}` the branch `{$branch}` :thumbsup:
+I got it :thumbsup:, I will `{$intentName}` ({$intentConfidence} confidence) the branch `{$branchName}` ({$branchConfidence} confidence) ! :shipitparrot: 
 STRING;
     }
 }

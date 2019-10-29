@@ -7,10 +7,12 @@ use App\Domain\Intent\IntentInterface;
 class Action
 {
     private IntentInterface $intent;
+    private string $user;
 
-    public function __construct(IntentInterface $intent)
+    public function __construct(IntentInterface $intent, string $user)
     {
         $this->intent = $intent;
+        $this->user = $user;
     }
 
     public function getParametersUsed(): array
@@ -28,4 +30,8 @@ class Action
         return $this->intent->getType();
     }
 
+    public function getUser(): string
+    {
+        return $this->user;
+    }
 }

@@ -3,6 +3,7 @@
 namespace App\Domain\Action\Builder;
 
 use App\Domain\Action\Action;
+use App\Domain\Action\ActionParameters;
 use App\Domain\Action\Exception\AbstractActionException;
 use App\Domain\Action\Exception\Environment\MultipleEnvironmentsException;
 use App\Domain\Action\Exception\Environment\NoEnvironmentException;
@@ -20,179 +21,199 @@ use App\Domain\Intent\DeployIntent;
 use App\Domain\Intent\Factory\IntentFactory;
 use App\Domain\Intent\Factory\InvalidIntentException as InvalidIntentCreationException;
 use App\Domain\Intent\IntentInterface;
+use App\Slack\Permission\PermissionChecker;
 use App\WitAI\Domain\EntitiesCollection;
 use App\WitAI\Domain\Entity;
 
 class ActionBuilder
 {
-    private EntitiesCollection $entitiesCollection;
-    private IntentInterface $intent;
+    private PermissionChecker $permissionChecker;
 
-    public function __construct(EntitiesCollection $entitiesCollection)
+    public function __construct(PermissionChecker $permissionChecker)
     {
-        $this->entitiesCollection = $entitiesCollection;
-    }
-
-    public function setIntent(IntentInterface $intent): void
-    {
-        $this->intent = $intent;
+        $this->permissionChecker = $permissionChecker;
     }
 
     /**
      * @throws AbstractActionException
      */
-    public function create(): Action
+    public function create(ActionParameters $parameters): Action
     {
-        $entities = $this->entitiesCollection;
+        $entitiesCollection = $parameters->getEntities();
+        $user = $parameters->getUser();
 
-        $this->validateIntents($entities->getIntentEntities());
-        $intent = $this->extractIntent($entities->getIntentEntities());
-        $this->setIntent($intent);
+        $this->validateIntents($entitiesCollection);
+        $intent = $this->extractIntent($entitiesCollection);
 
         switch (get_class($intent)) {
             case BuildIntent::class:
                 /** @var BuildIntent $intent */
-                $this->validateBranch($entities->getBranchEntities());
-                $branch = $this->extractBranch($entities->getBranchEntities());
+                $this->validateBranch($entitiesCollection);
+                $branch = $this->extractBranch($entitiesCollection);
                 $intent->setBranch($branch);
 
                 break;
             case BuildAndDeployIntent::class:
                 /** @var BuildAndDeployIntent $intent */
-                $this->validateBranch($entities->getBranchEntities());
-                $branch = $this->extractBranch($entities->getBranchEntities());
+                $this->validateBranch($entitiesCollection);
+                $branch = $this->extractBranch($entitiesCollection);
                 $intent->setBranch($branch);
 
-                $this->validateEnvironment($entities->getEnvironmentEntities());
-                $environment = $this->extractEnvironment($entities->getEnvironmentEntities());
+                $this->validateEnvironment($entitiesCollection, $parameters->getUser());
+                $environment = $this->extractEnvironment($entitiesCollection);
                 $intent->setEnvironment($environment);
 
-                $this->validateMarket($entities->getMarketEntities());
-                $market = $this->extractMarket($entities->getMarketEntities());
+                $this->validateMarket($entitiesCollection);
+                $market = $this->extractMarket($entitiesCollection);
                 $intent->setMarket($market);
 
                 break;
             case DeployIntent::class:
                 /** @var DeployIntent $intent */
-                $this->validateBuildNumber($entities->getBuildNumberEntities());
-                $buildNumber = $this->extractBuildNumber($entities->getBuildNumberEntities());
+                $this->validateBuildNumber($entitiesCollection);
+                $buildNumber = $this->extractBuildNumber($entitiesCollection);
                 $intent->setBuildNumber($buildNumber);
 
-                $this->validateEnvironment($entities->getEnvironmentEntities());
-                $environment = $this->extractEnvironment($entities->getEnvironmentEntities());
+                $this->validateEnvironment($entitiesCollection, $parameters->getUser());
+                $environment = $this->extractEnvironment($entitiesCollection);
                 $intent->setEnvironment($environment);
 
-                $this->validateMarket($entities->getMarketEntities());
-                $market = $this->extractMarket($entities->getMarketEntities());
+                $this->validateMarket($entitiesCollection);
+                $market = $this->extractMarket($entitiesCollection);
                 $intent->setMarket($market);
                 break;
         }
 
-        return new Action($intent);
+        return new Action($intent, $user);
     }
 
     /**
      * @throws AbstractActionException
      */
-    private function extractIntent(array $intents): IntentInterface
+    private function extractIntent(EntitiesCollection $entitiesCollection): IntentInterface
     {
         /** @var Entity $intentEntity */
         try {
-            return IntentFactory::createFromString(reset($intents)->getValue());
+            $intents = $entitiesCollection->getIntentEntities();
+            return IntentFactory::createFromEntity(reset($intents));
         } catch (InvalidIntentCreationException $e) {
-            throw new InvalidIntentException($this->entitiesCollection);
+            throw new InvalidIntentException($entitiesCollection);
         }
     }
 
     /**
      * @throws AbstractActionException
      */
-    private function validateIntents(array $intents): void
+    private function validateIntents(EntitiesCollection $entitiesCollection): void
     {
+        $intents = $entitiesCollection->getIntentEntities();
+
         if (empty($intents)) {
-            throw new NoIntentException($this->entitiesCollection);
+            throw new NoIntentException($entitiesCollection);
         }
 
         if (count($intents) > 1) {
-            throw new MultipleIntentsException($this->entitiesCollection);
+            throw new MultipleIntentsException($entitiesCollection);
         }
     }
 
     /**
      * @throws AbstractActionException
      */
-    private function validateBranch(array $branches): void
+    private function validateBranch(EntitiesCollection $entitiesCollection): void
     {
+        $branches = $entitiesCollection->getBranchEntities();
+
         if (empty($branches)) {
-            throw new NoBranchParameterException($this->entitiesCollection);
+            throw new NoBranchParameterException($entitiesCollection);
         }
 
         if (count($branches) > 1) {
-            throw new MultipleBranchesException($this->entitiesCollection);
+            throw new MultipleBranchesException($entitiesCollection);
         }
     }
 
-    private function extractBranch(array $branchEntities): Entity
+    private function extractBranch(EntitiesCollection $entitiesCollection): Entity
     {
+        $branchEntities = $entitiesCollection->getBranchEntities();
+
         return reset($branchEntities);
     }
 
     /**
      * @throws AbstractActionException
      */
-    private function validateBuildNumber(array $buildNumberEntities): void
+    private function validateBuildNumber(EntitiesCollection $entitiesCollection): void
     {
+        $buildNumberEntities = $entitiesCollection->getBuildNumberEntities();
+
         if (empty($buildNumberEntities)) {
-            throw new NoBuildNumberException($this->entitiesCollection);
+            throw new NoBuildNumberException($entitiesCollection);
         }
 
         if (count($buildNumberEntities) > 1) {
-            throw new MultipleBuildNumbersException($this->entitiesCollection);
+            throw new MultipleBuildNumbersException($entitiesCollection);
         }
     }
 
-    private function extractBuildNumber(array $buildNumberEntities): Entity
+    private function extractBuildNumber(EntitiesCollection $entitiesCollection): Entity
     {
+        $buildNumberEntities = $entitiesCollection->getBuildNumberEntities();
+
         return reset($buildNumberEntities);
     }
 
     /**
      * @throws AbstractActionException
      */
-    private function validateEnvironment(array $environmentEntities): void
+    private function validateEnvironment(EntitiesCollection $entitiesCollection, string $user): void
     {
+        $environmentEntities = $entitiesCollection->getEnvironmentEntities();
+
         if (empty($environmentEntities)) {
-            throw new NoEnvironmentException($this->entitiesCollection);
+            throw new NoEnvironmentException($entitiesCollection);
         }
 
         if (count($environmentEntities) > 1) {
-            throw new MultipleEnvironmentsException($this->entitiesCollection);
+            throw new MultipleEnvironmentsException($entitiesCollection);
+        }
+
+        /** @var Entity $environment */
+        $environment = reset($environmentEntities);
+
+        if ($environment->getValue() === 'production') {
+            $this->permissionChecker->checkPermissionToDeployToProduction($user);
         }
     }
 
-    private function extractEnvironment(array $environmentEntities): Entity
+    private function extractEnvironment(EntitiesCollection $entitiesCollection): Entity
     {
+        $environmentEntities = $entitiesCollection->getEnvironmentEntities();
+
         return reset($environmentEntities);
     }
 
     /**
      * @throws AbstractActionException
      */
-    private function validateMarket(array $marketEntities): void
+    private function validateMarket(EntitiesCollection $entitiesCollection): void
     {
+        $marketEntities = $entitiesCollection->getMarketEntities();
+
         if (count($marketEntities) > 1) {
-            throw new MultipleMarketsException($this->entitiesCollection);
+            throw new MultipleMarketsException($entitiesCollection);
         }
     }
 
-    private function extractMarket(array $marketEntities): Entity
+    private function extractMarket(EntitiesCollection $entitiesCollection): Entity
     {
+        $marketEntities = $entitiesCollection->getMarketEntities();
         $entity = reset($marketEntities);
 
         if ($entity instanceof Entity) {
             return $entity;
         }
 
-        return new Entity(true, 100, 'urlaubspiratende', 'value');
+        return new Entity(true, 0.01, 'urlaubspiratende', 'value');
     }
 }

@@ -2,11 +2,16 @@
 
 namespace App;
 
+use App\Domain\Action\Builder\ActionBuilder;
+use App\Domain\Action\Builder\Factory\ActionBuilderFactory;
 use App\Http\Request\Handler\Factory\SlackRequestHandlerFactory;
 use App\Http\Request\Handler\SlackRequestHandler;
 use App\Http\Client\Factory\HttpClientFactory;
+use App\Jenkins\Factory\ServiceFactory as JenkinsServiceFactory;
+use App\Jenkins\Service as JenkinsService;
 use App\Logger\Factory\LoggerFactory;
 use App\Service\ActionService;
+use App\Service\Factory\ActionServiceFactory;
 use App\Slack\Factory\MessengerFactory;
 use App\Slack\Messenger;
 use App\Slack\Permission\PermissionChecker;
@@ -43,15 +48,17 @@ class ConfigProvider
     {
         return [
             'invokables' => [
-                ActionService::class => ActionService::class,
                 PermissionChecker::class => PermissionChecker::class,
             ],
             'factories' => [
+                JenkinsService::class => JenkinsServiceFactory::class,
+                ActionService::class => ActionServiceFactory::class,
                 SlackRequestHandler::class => SlackRequestHandlerFactory::class,
                 Adapter::class => AdapterFactory::class,
                 ClientInterface::class => HttpClientFactory::class,
                 Messenger::class => MessengerFactory::class,
                 LoggerInterface::class => LoggerFactory::class,
+                ActionBuilder::class => ActionBuilderFactory::class,
             ],
         ];
     }
